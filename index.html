@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Downhill - 閲覧数チキンレース</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.8rem; color: var(--primary); }
+        .subtitle { font-size: 0.9rem; color: #7f8c8d; margin-bottom: 20px; }
+        
+        /* Score Board */
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .score-item {
+            background: #ecf0f1;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Target Display */
+        .target-section {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        .target-label { font-size: 0.8rem; color: #95a5a6; text-transform: uppercase; letter-spacing: 1px; }
+        .target-value { font-size: 3rem; font-weight: 800; color: var(--text); margin: 5px 0; line-height: 1; }
+        .target-word { font-size: 1.1rem; color: var(--primary); font-weight: bold; }
+
+        /* Input Section */
+        .input-group { position: relative; margin-bottom: 10px; }
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
+        input:disabled { background: #f9f9f9; cursor: not-allowed; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        }
+        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { background: #bdc3c7; cursor: default; box-shadow: none; }
+        
+        .msg-area {
+            min-height: 24px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .error { color: var(--danger); }
+        .success { color: var(--success); }
+
+        /* History */
+        .history {
+            text-align: left;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f9f9f9;
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Game Over Modal State */
+        .game-over .target-value { color: var(--danger); text-decoration: line-through; }
+        #restart-btn { background: var(--danger); display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="game-container">
+    <h1>📉 Wiki Downhill</h1>
+    <p class="subtitle">直近30日の閲覧数を下げ続けろ！</p>
+
+    <div class="score-board">
+        <div class="score-item">SCORE: <span id="score">0</span></div>
+        <div class="score-item">TURN: <span id="turn">1</span></div>
+    </div>
+
+    <div class="target-section">
+        <div class="target-label">現在の基準値（これ未満を狙え）</div>
+        <div class="target-value" id="target-value">∞</div>
+        <div class="target-word" id="target-word">START</div>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="keyword" list="suggestions" placeholder="単語を入力 (例: トマト)" autocomplete="off">
+        <datalist id="suggestions"></datalist>
+    </div>
+
+    <div class="msg-area" id="msg"></div>
+
+    <button id="submit-btn">勝負する</button>
+    <button id="restart-btn">もう一度挑戦</button>
+
+    <div class="history" id="history">
+        </div>
+</div>
+
+<script>
+    // --- Config & State ---
+    let currentState = {
+        lastValue: Infinity,
+        score: 0,
+        turn: 1,
+        history: []
+    };
+
+    const DOM = {
+        input: document.getElementById('keyword'),
+        submitBtn: document.getElementById('submit-btn'),
+        restartBtn: document.getElementById('restart-btn'),
+        targetValue: document.getElementById('target-value'),
+        targetWord: document.getElementById('target-word'),
+        score: document.getElementById('score'),
+        turn: document.getElementById('turn'),
+        msg: document.getElementById('msg'),
+        history: document.getElementById('history'),
+        datalist: document.getElementById('suggestions'),
+        container: document.getElementById('game-container')
+    };
+
+    // --- Wikipedia API Helper ---
+    
+    // サジェスト機能 (OpenSearch API)
+    async function fetchSuggestions(query) {
+        if (!query) return;
+        const url = `https://ja.wikipedia.org/w/api.php?action=opensearch&format=json&origin=*&search=${encodeURIComponent(query)}&limit=5`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            // data[1] contains the list of titles
+            return data[1] || [];
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
+    }
+
+    // 閲覧数取得機能 (Pageviews API)
+    // 直近30日間のDailyデータを取得して合算する（より正確な直近データのため）
+    async function fetchPageViews(title) {
+        // 日付計算: 今日から2日前(確定データ)を終了日、そこから30日前を開始日
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() - 2);
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 32); // 30日分確保
+
+        const formatDate = d => d.toISOString().slice(0, 10).replace(/-/g, '');
+        const startStr = formatDate(startDate);
+        const endStr = formatDate(endDate);
+
+        const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/ja.wikipedia/all-access/all-agents/${encodeURIComponent(title)}/daily/${startStr}/${endStr}`;
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) return null; // 404 or other error
+            const data = await res.json();
+            
+            // items配列のviewsを合計する
+            if (!data.items || data.items.length === 0) return null;
+            
+            const totalViews = data.items.reduce((sum, item) => sum + item.views, 0);
+            return totalViews;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // --- Game Logic ---
+
+    // 入力欄のサジェスト更新イベント
+    let debounceTimer;
+    DOM.input.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            const val = e.target.value.trim();
+            if (val.length > 0) {
+                const suggestions = await fetchSuggestions(val);
+                DOM.datalist.innerHTML = '';
+                suggestions.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    DOM.datalist.appendChild(option);
+                });
+            }
+        }, 300);
+    });
+
+    // 実行処理
+    async function handleTurn() {
+        const word = DOM.input.value.trim();
+        if (!word) return;
+
+        // UIロック
+        setLoading(true);
+        DOM.msg.textContent = "";
+        DOM.msg.className = "msg-area";
+
+        // データ取得
+        const views = await fetchPageViews(word);
+
+        // UIロック解除
+        setLoading(false);
+
+        // ケース1: 単語が存在しない (ノーカウント)
+        if (views === null) {
+            DOM.msg.textContent = `⚠️ 「${word}」のデータが見つかりません。別の単語を入力してください。`;
+            DOM.msg.className = "msg-area error";
+            // 入力欄を選択状態にして修正しやすくする
+            DOM.input.select(); 
+            return;
+        }
+
+        // ケース2: 成功 (前回より小さい)
+        if (views < currentState.lastValue) {
+            updateGameSuccess(word, views);
+        } 
+        // ケース3: 失敗 (前回以上)
+        else {
+            triggerGameOver(word, views);
+        }
+    }
+
+    function updateGameSuccess(word, views) {
+        // スコア更新
+        currentState.score++;
+        currentState.turn++;
+        currentState.lastValue = views;
+
+        // UI更新
+        DOM.score.textContent = currentState.score;
+        DOM.turn.textContent = currentState.turn;
+        
+        // ターゲット更新（アニメーション風）
+        DOM.targetWord.textContent = `「${word}」の直近30日PV`;
+        DOM.targetValue.textContent = views.toLocaleString();
+        
+        // メッセージ
+        DOM.msg.textContent = `✅ ナイス！ ${views.toLocaleString()} ビュー`;
+        DOM.msg.className = "msg-area success";
+
+        // 履歴追加
+        addHistoryLog(word, views, true);
+
+        // 入力欄クリア
+        DOM.input.value = "";
+        DOM.input.focus();
+    }
+
+    function triggerGameOver(word, views) {
+        DOM.container.classList.add('game-over');
+        
+        DOM.msg.innerHTML = `💀 <b>ゲームオーバー！</b><br>「${word}」は ${views.toLocaleString()} ビューでした。<br>(基準: ${currentState.lastValue.toLocaleString()} 以上)`;
+        DOM.msg.className = "msg-area error";
+
+        // 履歴追加（失敗）
+        addHistoryLog(word, views, false);
+
+        // ボタン切り替え
+        DOM.submitBtn.style.display = 'none';
+        DOM.input.disabled = true;
+        DOM.restartBtn.style.display = 'inline-block';
+    }
+
+    function addHistoryLog(word, views, isSuccess) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.style.color = isSuccess ? 'inherit' : '#e74c3c';
+        div.innerHTML = `
+            <span>${isSuccess ? 'Checking' : 'Failed'}: <b>${word}</b></span>
+            <span>${views.toLocaleString()}</span>
+        `;
+        DOM.history.prepend(div);
+    }
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            DOM.submitBtn.disabled = true;
+            DOM.submitBtn.textContent = "計測中...";
+            DOM.input.disabled = true;
+        } else {
+            DOM.submitBtn.disabled = false;
+            DOM.submitBtn.textContent = "勝負する";
+            DOM.input.disabled = false;
+            DOM.input.focus();
+        }
+    }
+
+    function resetGame() {
+        currentState = { lastValue: Infinity, score: 0, turn: 1, history: [] };
+        
+        DOM.score.textContent = "0";
+        DOM.turn.textContent = "1";
+        DOM.targetValue.textContent = "∞";
+        DOM.targetWord.textContent = "START";
+        DOM.msg.textContent = "";
+        DOM.history.innerHTML = "";
+        DOM.input.value = "";
+        DOM.container.classList.remove('game-over');
+        
+        DOM.submitBtn.style.display = 'inline-block';
+        DOM.restartBtn.style.display = 'none';
+        DOM.input.disabled = false;
+        DOM.input.focus();
+    }
+
+    // --- Event Listeners ---
+    DOM.submitBtn.addEventListener('click', handleTurn);
+    DOM.restartBtn.addEventListener('click', resetGame);
+    DOM.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleTurn();
+    });
+
+    // 初期フォーカス
+    DOM.input.focus();
+
+</script>
+
+</body>
+</html>
