@@ -2,385 +2,387 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wiki Downhill - 閲覧数チキンレース</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wiki Downhill - Ultimate</title>
     <style>
         :root {
-            --primary: #3498db;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --bg: #f4f7f6;
-            --card-bg: #ffffff;
-            --text: #2c3e50;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary: #4A90E2;
+            --success: #00b894;
+            --danger: #d63031;
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --font-main: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
         }
+
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            margin: 0;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            color: var(--text-main);
+            overflow-x: hidden;
         }
-        .container {
+
+        .game-container {
+            width: 100%;
+            max-width: 480px;
             background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 30px 20px;
+            box-sizing: border-box;
+            margin: 20px;
             position: relative;
-            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s;
         }
-        h1 { margin: 0 0 10px 0; font-size: 1.8rem; color: var(--primary); }
-        .subtitle { font-size: 0.9rem; color: #7f8c8d; margin-bottom: 20px; }
-        
-        /* Score Board */
-        .score-board {
+
+        header { text-align: center; margin-bottom: 25px; }
+        h1 { margin: 0; font-size: 1.8rem; letter-spacing: -0.5px; background: linear-gradient(45deg, #4A90E2, #8e44ad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { font-size: 0.85rem; color: var(--text-sub); margin-top: 5px; }
+
+        .stats-row {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .score-item {
-            background: #ecf0f1;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
+            justify-content: space-between;
+            background: #f1f2f6;
+            padding: 10px 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
             font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .stat-item span { color: var(--primary); font-size: 1.1rem; margin-left: 5px; }
+
+        .target-display {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .target-label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        .target-number { 
+            font-size: 3.5rem; 
+            font-weight: 800; 
+            line-height: 1.1; 
+            margin: 10px 0; 
+            font-variant-numeric: tabular-nums; 
+            transition: color 0.3s;
+        }
+        .target-word { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            color: var(--primary);
+            padding: 5px 15px;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 20px;
+            display: inline-block;
         }
 
-        /* Target Display */
-        .target-section {
-            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
-        }
-        .target-label { font-size: 0.8rem; color: #95a5a6; text-transform: uppercase; letter-spacing: 1px; }
-        .target-value { font-size: 3rem; font-weight: 800; color: var(--text); margin: 5px 0; line-height: 1; }
-        .target-word { font-size: 1.1rem; color: var(--primary); font-weight: bold; }
-
-        /* Input Section */
-        .input-group { position: relative; margin-bottom: 10px; }
-        input {
+        .input-area { position: relative; margin-bottom: 15px; }
+        input[type="text"] {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             font-size: 1.1rem;
             border: 2px solid #dfe6e9;
-            border-radius: 12px;
+            border-radius: 16px;
             box-sizing: border-box;
             outline: none;
-            transition: 0.3s;
+            transition: all 0.3s;
+            appearance: none;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
-        input:disabled { background: #f9f9f9; cursor: not-allowed; }
-
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15); }
+        
         button {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             font-size: 1.1rem;
             font-weight: bold;
             color: white;
             background: var(--primary);
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+            transition: transform 0.1s, background 0.3s;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            -webkit-tap-highlight-color: transparent;
         }
-        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4); }
-        button:active:not(:disabled) { transform: translateY(0); }
-        button:disabled { background: #bdc3c7; cursor: default; box-shadow: none; }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #b2bec3; cursor: not-allowed; box-shadow: none; transform: none; }
         
-        .msg-area {
-            min-height: 24px;
-            margin: 10px 0;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-        .error { color: var(--danger); }
-        .success { color: var(--success); }
+        .btn-restart { background: var(--text-main); margin-top: 10px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
-        /* History */
-        .history {
-            text-align: left;
+        .message-box { min-height: 24px; text-align: center; margin: 15px 0; font-size: 0.95rem; font-weight: bold; }
+        .error-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; color: var(--danger); }
+        .success-pop { animation: pop 0.3s ease; color: var(--success); }
+
+        .history-list {
             margin-top: 20px;
+            border-top: 2px solid #f1f2f6;
+            padding-top: 15px;
             max-height: 200px;
             overflow-y: auto;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
+            text-align: left;
         }
         .history-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #f9f9f9;
             font-size: 0.9rem;
-            animation: fadeIn 0.5s ease;
+            animation: slideDown 0.3s ease forwards;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .history-word { font-weight: bold; }
+        .history-val { color: var(--text-sub); font-family: monospace; font-size: 1rem; }
 
-        /* Game Over Modal State */
-        .game-over .target-value { color: var(--danger); text-decoration: line-through; }
-        #restart-btn { background: var(--danger); display: none; margin-top: 10px; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+        @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .game-over .target-number { color: var(--danger); text-decoration: line-through; }
     </style>
 </head>
 <body>
 
-<div class="container" id="game-container">
-    <h1>📉 Wiki Downhill</h1>
-    <p class="subtitle">直近30日の閲覧数を下げ続けろ！</p>
+<div class="game-container" id="container">
+    <header>
+        <h1>📉 Wiki Downhill</h1>
+        <div class="subtitle">直近30日間の閲覧数を下げ続けろ</div>
+    </header>
 
-    <div class="score-board">
-        <div class="score-item">SCORE: <span id="score">0</span></div>
-        <div class="score-item">TURN: <span id="turn">1</span></div>
+    <div class="stats-row">
+        <div class="stat-item">SCORE: <span id="score">0</span></div>
+        <div class="stat-item">BEST: <span id="best-score">0</span></div>
     </div>
 
-    <div class="target-section">
-        <div class="target-label">現在の基準値（これ未満を狙え）</div>
-        <div class="target-value" id="target-value">∞</div>
+    <div class="target-display">
+        <div class="target-label">CURRENT TARGET (LESS THAN)</div>
+        <div class="target-number" id="target-value">∞</div>
         <div class="target-word" id="target-word">START</div>
     </div>
 
-    <div class="input-group">
-        <input type="text" id="keyword" list="suggestions" placeholder="単語を入力 (例: トマト)" autocomplete="off">
+    <div class="input-area">
+        <input type="text" id="keyword" list="suggestions" placeholder="単語を入力 (例: 日本)" autocomplete="off">
         <datalist id="suggestions"></datalist>
     </div>
 
-    <div class="msg-area" id="msg"></div>
-
     <button id="submit-btn">勝負する</button>
-    <button id="restart-btn">もう一度挑戦</button>
+    
+    <div class="message-box" id="msg"></div>
 
-    <div class="history" id="history">
-        </div>
+    <button id="restart-btn" class="btn-restart">もう一度挑戦</button>
+
+    <div class="history-list" id="history"></div>
 </div>
 
 <script>
-    // --- Config & State ---
-    let currentState = {
+    // --- 状態管理 ---
+    const STATE = {
         lastValue: Infinity,
         score: 0,
-        turn: 1,
+        bestScore: localStorage.getItem('wiki_downhill_best') || 0,
         history: []
     };
 
-    const DOM = {
+    // --- DOM要素 ---
+    const UI = {
+        container: document.getElementById('container'),
         input: document.getElementById('keyword'),
         submitBtn: document.getElementById('submit-btn'),
         restartBtn: document.getElementById('restart-btn'),
         targetValue: document.getElementById('target-value'),
         targetWord: document.getElementById('target-word'),
         score: document.getElementById('score'),
-        turn: document.getElementById('turn'),
+        bestScore: document.getElementById('best-score'),
         msg: document.getElementById('msg'),
         history: document.getElementById('history'),
-        datalist: document.getElementById('suggestions'),
-        container: document.getElementById('game-container')
+        datalist: document.getElementById('suggestions')
     };
 
-    // --- Wikipedia API Helper ---
-    
-    // サジェスト機能 (OpenSearch API)
+    // 初期表示
+    UI.bestScore.textContent = STATE.bestScore;
+
+    // --- Wikipedia API (精度重視) ---
     async function fetchSuggestions(query) {
         if (!query) return;
-        const url = `https://ja.wikipedia.org/w/api.php?action=opensearch&format=json&origin=*&search=${encodeURIComponent(query)}&limit=5`;
         try {
+            const url = `https://ja.wikipedia.org/w/api.php?action=opensearch&format=json&origin=*&search=${encodeURIComponent(query)}&limit=5`;
             const res = await fetch(url);
             const data = await res.json();
-            // data[1] contains the list of titles
             return data[1] || [];
-        } catch (e) {
-            console.error(e);
-            return [];
-        }
+        } catch(e) { return []; }
     }
 
-    // 閲覧数取得機能 (Pageviews API)
-    // 直近30日間のDailyデータを取得して合算する（より正確な直近データのため）
-    async function fetchPageViews(title) {
-        // 日付計算: 今日から2日前(確定データ)を終了日、そこから30日前を開始日
+    async function fetchTotalViews(title) {
         const endDate = new Date();
-        endDate.setDate(endDate.getDate() - 2);
+        endDate.setDate(endDate.getDate() - 2); 
         const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 32); // 30日分確保
+        startDate.setDate(startDate.getDate() - 32); 
 
         const formatDate = d => d.toISOString().slice(0, 10).replace(/-/g, '');
-        const startStr = formatDate(startDate);
-        const endStr = formatDate(endDate);
-
-        const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/ja.wikipedia/all-access/all-agents/${encodeURIComponent(title)}/daily/${startStr}/${endStr}`;
+        const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/ja.wikipedia/all-access/all-agents/${encodeURIComponent(title)}/daily/${formatDate(startDate)}/${formatDate(endDate)}`;
 
         try {
             const res = await fetch(url);
-            if (!res.ok) return null; // 404 or other error
+            if (res.status === 404) return null;
             const data = await res.json();
-            
-            // items配列のviewsを合計する
             if (!data.items || data.items.length === 0) return null;
-            
-            const totalViews = data.items.reduce((sum, item) => sum + item.views, 0);
-            return totalViews;
+            return data.items.reduce((acc, curr) => acc + curr.views, 0);
         } catch (e) {
             return null;
         }
     }
 
-    // --- Game Logic ---
+    // --- 演出系ロジック ---
+    function animateValue(element, start, end, duration) {
+        if (start === "∞") start = end * 1.5; 
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const currentVal = Math.floor(progress * (end - start) + start);
+            element.textContent = currentVal.toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                element.textContent = end.toLocaleString();
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
 
-    // 入力欄のサジェスト更新イベント
+    // --- ゲームロジック ---
     let debounceTimer;
-    DOM.input.addEventListener('input', (e) => {
+    UI.input.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
             const val = e.target.value.trim();
-            if (val.length > 0) {
-                const suggestions = await fetchSuggestions(val);
-                DOM.datalist.innerHTML = '';
-                suggestions.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item;
-                    DOM.datalist.appendChild(option);
+            if(val.length > 0) {
+                const list = await fetchSuggestions(val);
+                UI.datalist.innerHTML = '';
+                list.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    UI.datalist.appendChild(opt);
                 });
             }
         }, 300);
     });
 
-    // 実行処理
     async function handleTurn() {
-        const word = DOM.input.value.trim();
+        const word = UI.input.value.trim();
         if (!word) return;
 
-        // UIロック
-        setLoading(true);
-        DOM.msg.textContent = "";
-        DOM.msg.className = "msg-area";
+        UI.submitBtn.disabled = true;
+        UI.submitBtn.textContent = "データ取得中...";
+        UI.input.disabled = true;
+        UI.msg.textContent = "";
+        UI.msg.className = "message-box";
 
-        // データ取得
-        const views = await fetchPageViews(word);
+        const views = await fetchTotalViews(word);
 
-        // UIロック解除
-        setLoading(false);
-
-        // ケース1: 単語が存在しない (ノーカウント)
         if (views === null) {
-            DOM.msg.textContent = `⚠️ 「${word}」のデータが見つかりません。別の単語を入力してください。`;
-            DOM.msg.className = "msg-area error";
-            // 入力欄を選択状態にして修正しやすくする
-            DOM.input.select(); 
+            UI.msg.textContent = `⚠️ 「${word}」が見つかりません。正確な記事名を入れてください。`;
+            UI.msg.classList.add("error-shake");
+            resetInputState();
             return;
         }
 
-        // ケース2: 成功 (前回より小さい)
-        if (views < currentState.lastValue) {
-            updateGameSuccess(word, views);
-        } 
-        // ケース3: 失敗 (前回以上)
-        else {
-            triggerGameOver(word, views);
-        }
-    }
-
-    function updateGameSuccess(word, views) {
-        // スコア更新
-        currentState.score++;
-        currentState.turn++;
-        currentState.lastValue = views;
-
-        // UI更新
-        DOM.score.textContent = currentState.score;
-        DOM.turn.textContent = currentState.turn;
-        
-        // ターゲット更新（アニメーション風）
-        DOM.targetWord.textContent = `「${word}」の直近30日PV`;
-        DOM.targetValue.textContent = views.toLocaleString();
-        
-        // メッセージ
-        DOM.msg.textContent = `✅ ナイス！ ${views.toLocaleString()} ビュー`;
-        DOM.msg.className = "msg-area success";
-
-        // 履歴追加
-        addHistoryLog(word, views, true);
-
-        // 入力欄クリア
-        DOM.input.value = "";
-        DOM.input.focus();
-    }
-
-    function triggerGameOver(word, views) {
-        DOM.container.classList.add('game-over');
-        
-        DOM.msg.innerHTML = `💀 <b>ゲームオーバー！</b><br>「${word}」は ${views.toLocaleString()} ビューでした。<br>(基準: ${currentState.lastValue.toLocaleString()} 以上)`;
-        DOM.msg.className = "msg-area error";
-
-        // 履歴追加（失敗）
-        addHistoryLog(word, views, false);
-
-        // ボタン切り替え
-        DOM.submitBtn.style.display = 'none';
-        DOM.input.disabled = true;
-        DOM.restartBtn.style.display = 'inline-block';
-    }
-
-    function addHistoryLog(word, views, isSuccess) {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.style.color = isSuccess ? 'inherit' : '#e74c3c';
-        div.innerHTML = `
-            <span>${isSuccess ? 'Checking' : 'Failed'}: <b>${word}</b></span>
-            <span>${views.toLocaleString()}</span>
-        `;
-        DOM.history.prepend(div);
-    }
-
-    function setLoading(isLoading) {
-        if (isLoading) {
-            DOM.submitBtn.disabled = true;
-            DOM.submitBtn.textContent = "計測中...";
-            DOM.input.disabled = true;
+        if (views < STATE.lastValue) {
+            successTurn(word, views);
         } else {
-            DOM.submitBtn.disabled = false;
-            DOM.submitBtn.textContent = "勝負する";
-            DOM.input.disabled = false;
-            DOM.input.focus();
+            gameOver(word, views);
         }
     }
 
-    function resetGame() {
-        currentState = { lastValue: Infinity, score: 0, turn: 1, history: [] };
+    function successTurn(word, views) {
+        STATE.score++;
+        UI.score.textContent = STATE.score;
+
+        const prev = STATE.lastValue === Infinity ? views * 2 : STATE.lastValue;
+        animateValue(UI.targetValue, prev, views, 800);
         
-        DOM.score.textContent = "0";
-        DOM.turn.textContent = "1";
-        DOM.targetValue.textContent = "∞";
-        DOM.targetWord.textContent = "START";
-        DOM.msg.textContent = "";
-        DOM.history.innerHTML = "";
-        DOM.input.value = "";
-        DOM.container.classList.remove('game-over');
+        STATE.lastValue = views;
+        UI.targetWord.textContent = word;
+
+        UI.msg.textContent = "✅ ナイス！次へ進もう";
+        UI.msg.classList.add("success-pop");
+
+        addHistory(word, views, true);
         
-        DOM.submitBtn.style.display = 'inline-block';
-        DOM.restartBtn.style.display = 'none';
-        DOM.input.disabled = false;
-        DOM.input.focus();
+        UI.input.value = "";
+        resetInputState();
+        UI.submitBtn.textContent = "勝負する";
     }
 
-    // --- Event Listeners ---
-    DOM.submitBtn.addEventListener('click', handleTurn);
-    DOM.restartBtn.addEventListener('click', resetGame);
-    DOM.input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleTurn();
-    });
+    function gameOver(word, views) {
+        UI.container.classList.add("game-over");
+        UI.targetValue.textContent = STATE.lastValue.toLocaleString();
+        
+        UI.msg.innerHTML = `💀 <b>ドボン！</b><br>「${word}」は ${views.toLocaleString()} viewsでした。<br>(${STATE.lastValue.toLocaleString()}より小さい必要があります)`;
+        UI.msg.className = "message-box error-shake";
 
-    // 初期フォーカス
-    DOM.input.focus();
+        addHistory(word, views, false);
+
+        if (STATE.score > STATE.bestScore) {
+            STATE.bestScore = STATE.score;
+            localStorage.setItem('wiki_downhill_best', STATE.score);
+            UI.bestScore.textContent = STATE.score;
+            UI.msg.innerHTML += "<br>🏆 <b>NEW RECORD!</b>";
+        }
+
+        UI.submitBtn.style.display = "none";
+        UI.input.style.display = "none";
+        UI.restartBtn.style.display = "block";
+    }
+
+    function addHistory(word, views, isSuccess) {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.style.color = isSuccess ? "inherit" : "var(--danger)";
+        div.innerHTML = `
+            <span class="history-word">${word}</span>
+            <span class="history-val">${views.toLocaleString()}</span>
+        `;
+        UI.history.prepend(div);
+    }
+
+    function resetInputState() {
+        UI.submitBtn.disabled = false;
+        UI.submitBtn.textContent = "勝負する";
+        UI.input.disabled = false;
+        UI.input.focus();
+    }
+
+    function restartGame() {
+        STATE.lastValue = Infinity;
+        STATE.score = 0;
+        UI.score.textContent = "0";
+        UI.targetValue.textContent = "∞";
+        UI.targetWord.textContent = "START";
+        UI.msg.textContent = "";
+        UI.history.innerHTML = "";
+        UI.input.value = "";
+        
+        UI.container.classList.remove("game-over");
+        UI.submitBtn.style.display = "block";
+        UI.input.style.display = "block";
+        UI.restartBtn.style.display = "none";
+        
+        resetInputState();
+    }
+
+    UI.submitBtn.addEventListener('click', handleTurn);
+    UI.restartBtn.addEventListener('click', restartGame);
+    UI.input.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') handleTurn();
+    });
+    
+    UI.input.focus();
 
 </script>
-
 </body>
 </html>
